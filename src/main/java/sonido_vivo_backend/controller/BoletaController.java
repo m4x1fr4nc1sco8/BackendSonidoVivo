@@ -21,6 +21,11 @@ public class BoletaController {
         return ResponseEntity.ok(boletaService.listarTodas());
     }
 
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<List<Boleta>> listarPorUsuario(@PathVariable Long usuarioId) {
+        return ResponseEntity.ok(boletaService.listarPorUsuario(usuarioId));
+    }
+
     @PostMapping
     public ResponseEntity<Boleta> crear(@RequestBody Boleta boleta) {
         return ResponseEntity.ok(boletaService.crearBoleta(boleta));
@@ -29,5 +34,11 @@ public class BoletaController {
     @PatchMapping("/{id}/estado")
     public ResponseEntity<Boleta> cambiarEstado(@PathVariable Long id, @RequestBody Map<String, String> body) {
         return ResponseEntity.ok(boletaService.actualizarEstado(id, body.get("estado")));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        boletaService.eliminarBoleta(id);
+        return ResponseEntity.noContent().build();
     }
 }

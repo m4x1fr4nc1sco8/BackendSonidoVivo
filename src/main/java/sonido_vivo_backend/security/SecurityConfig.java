@@ -51,9 +51,13 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/productos/**").hasAuthority("ROLE_ADMINISTRADOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/productos/**").hasAuthority("ROLE_ADMINISTRADOR")
 
-                // Órdenes / Boletas: Ver (Admin y Vendedor), Comprar (Cualquier usuario autenticado)
+                // Historial del propio cliente (cualquier usuario autenticado)
+                .requestMatchers(HttpMethod.GET, "/api/v1/boletas/usuario/**").authenticated()
+
+                // Órdenes / Boletas: Ver y actualizar estado (Admin y Vendedor), Eliminar (Solo Admin), Comprar (Autenticado)
                 .requestMatchers(HttpMethod.GET, "/api/v1/boletas/**").hasAnyAuthority("ROLE_ADMINISTRADOR", "ROLE_VENDEDOR")
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/boletas/**").hasAnyAuthority("ROLE_ADMINISTRADOR", "ROLE_VENDEDOR")
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/boletas/**").hasAuthority("ROLE_ADMINISTRADOR")
                 .requestMatchers(HttpMethod.POST, "/api/v1/boletas/**").authenticated()
 
                 .anyRequest().authenticated()

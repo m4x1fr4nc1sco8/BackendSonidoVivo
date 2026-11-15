@@ -24,6 +24,10 @@ public class BoletaService {
         return boletaRepository.findAll();
     }
 
+    public List<Boleta> listarPorUsuario(Long usuarioId) {
+        return boletaRepository.findByUsuarioIdOrderByFechaDesc(usuarioId);
+    }
+
     @Transactional
     public Boleta crearBoleta(Boleta boleta) {
         boleta.setFecha(LocalDateTime.now());
@@ -57,10 +61,41 @@ public class BoletaService {
         return boletaRepository.save(boleta);
     }
 
+    @Transactional
     public Boleta actualizarEstado(Long id, String nuevoEstado) {
         Boleta boleta = boletaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Boleta no encontrada"));
+
+        // Si se cancela por primera vez, devolver stock a MySQL
+        if ("CANCELADO".equalsIgnoreCase(nuevoEstado) && !"CANCELADO".equalsIgnoreCase(boleta.getEstado())) {
+            devolverStock(boleta);
+        }
+
         boleta.setEstado(nuevoEstado);
         return boletaRepository.save(boleta);
+    }
+
+    @Transactional
+    public void eliminarBoleta(Long id) {
+        Boleta boleta = boletaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Boleta no encontrada"));
+
+        if (!"CANCELADO".equalsIgnoreCase(boleta.getEstado())) {
+            devolverStock(boleta);
+        }
+
+        boletaRepository.delete(boleta);
+    }
+
+    private void devolverStock(Boleta boleta) {
+        if (boleta.getDetalles() != null) {
+            for (DetalleBoleta detalle : boleta.getDetalles()) {
+                Producto prod = productoRepository.findById(detalle.getProducto().getId()).orElse(null);
+                if (prod != null) {
+                    prod.setStock(prod.getStock() + detalle.getCantidad());
+                    productoRepository.save(prod);
+                }
+            }
+        }
     }
 }
